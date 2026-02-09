@@ -1,0 +1,27 @@
+/* Importa Tailwind */
+@import "tailwindcss";
+
+/* Stili globali personalizzati */
+:root {
+  --primary-color: #2563eb;
+  --secondary-color: #64748b;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: blanchedalmond;
+}
+
+/* Utility classes personalizzate */
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Animazioni */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
