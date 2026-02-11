@@ -41,10 +41,25 @@ export const apiService = {
     await apiClient.delete(`/clients/${id}`)
   },
 
-  // Policies (aggiungi se necessario)
+  // Policies
   async getPolicies(): Promise<Policy[]> {
     const response = await apiClient.get<Policy[]>('/policies')
     return response.data
+  },
+  async getPolicy(id: number): Promise<Policy> {
+    const response = await apiClient.get<Policy>(`/policies/${id}`)
+    return response.data
+  },
+  async createPolicy(policyData: Omit<Policy, 'id' | 'client'>): Promise<Policy> {
+    const response = await apiClient.post<Policy>('/policies', policyData)
+    return response.data
+  },
+  async updatePolicy(id: number, policyData: Partial<Policy>): Promise<Policy> {
+    const response = await apiClient.put<Policy>(`/policies/${id}`, policyData)
+    return response.data
+  },
+  async deletePolicy(id: number): Promise<void> {
+    await apiClient.delete(`/policies/${id}`)
   },
 }
 
