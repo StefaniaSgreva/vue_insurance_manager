@@ -20,7 +20,7 @@ export interface Policy {
   status: 'active' | 'expired' | 'pending' | 'cancelled'
   start_date: string
   end_date: string
-  details?: Record<string, any>
+  details?: Record<string, unknown>
   client?: Client
 }
 
