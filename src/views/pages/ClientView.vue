@@ -2,10 +2,8 @@
   <div class="clients-view">
     <!-- Header con azioni -->
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
-      <div>
-        <h2 class="text-2xl font-bold text-gray-900">Client Management</h2>
-        <p class="text-gray-600 mt-1">Manage your insurance clients and their information</p>
-      </div>
+      <p class="text-gray-600 mt-1">Manage your insurance clients and their information</p>
+
       <button @click="openCreateModal" class="btn-primary flex items-center mt-4 md:mt-0">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path

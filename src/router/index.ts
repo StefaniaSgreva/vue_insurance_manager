@@ -29,6 +29,10 @@ const router = createRouter({
       path: '/policies',
       name: 'policies',
       component: () => import('@/views/pages/PoliciesView.vue'),
+      meta: {
+        title: 'Policy Management',
+        breadcrumb: 'Policies',
+      },
     },
     {
       path: '/reports',
