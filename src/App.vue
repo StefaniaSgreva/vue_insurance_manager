@@ -1,7 +1,55 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import TheHeader from './components/layout/TheHeader.vue'
 import TheFooter from './components/layout/TheFooter.vue'
+import { apiService } from '@/api/client'
+
+// Stato per le statistiche laterali
+const sidebarStats = ref({
+  activePolicies: 0,
+  expiringSoon: 0,
+  newClients: 0,
+})
+
+// Carica le statistiche reali
+onMounted(async () => {
+  try {
+    // 1. Carica le statistiche generali
+    const stats = await apiService.getStats()
+    sidebarStats.value.activePolicies = stats.active_policies
+
+    // 2. Carica i clienti (per new clients)
+    const clients = await apiService.getClients()
+    sidebarStats.value.newClients = clients.length
+
+    // 3. Calcola le polizze in scadenza (richiede una chiamata filtrata)
+    //    Opzione: possiamo fare una chiamata API per polizze attive con end_date ≤ 30gg
+    //    Se il backend non ha un endpoint specifico, calcoliamo sulle polizze caricate (ma solo se già in store)
+    //    Alternativa: per ora lasciamo un placeholder dinamico
+    //    Qui usiamo una chiamata separata per polizze in scadenza
+    const expiringResponse = await apiService.getPolicies(1, 100, {
+      status: 'active',
+      // Nota: il backend deve supportare il filtro per data. Se non lo fa,
+      // calcoliamo lato frontend sulle polizze attive (ma sarebbe inefficiente).
+      // Per ora mostriamo 0, o usiamo un valore di esempio.
+      // In attesa di implementare un endpoint dedicato, lasciamo statico? Meglio mostrare 0.
+    })
+    // Calcolo lato frontend se abbiamo le polizze attive
+    const today = new Date()
+    const thirtyDaysFromNow = new Date()
+    thirtyDaysFromNow.setDate(today.getDate() + 30)
+    const activePolicies = expiringResponse.data
+    const expiringCount = activePolicies.filter((p) => {
+      const endDate = new Date(p.end_date)
+      return endDate <= thirtyDaysFromNow && endDate >= today
+    }).length
+    sidebarStats.value.expiringSoon = expiringCount
+  } catch (error) {
+    console.error('Failed to load sidebar stats:', error)
+    // Valori di fallback (0)
+  }
+})
 </script>
 
 <template>
@@ -46,28 +94,30 @@ import TheFooter from './components/layout/TheFooter.vue'
               </button>
             </div>
 
-            <!-- Statistiche laterali -->
+            <!-- Statistiche laterali (dati reali) -->
             <div class="mt-8 pt-6 border-t border-gray-200">
               <h3 class="text-lg font-semibold text-gray-800 mb-4">Today's Stats</h3>
               <div class="space-y-4">
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-gray-600">Active Policies</span>
-                  <span class="font-semibold text-primary-600">24</span>
+                  <span class="font-semibold text-primary-600">{{
+                    sidebarStats.activePolicies
+                  }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-gray-600">Expiring Soon</span>
-                  <span class="font-semibold text-yellow-600">3</span>
+                  <span class="font-semibold text-yellow-600">{{ sidebarStats.expiringSoon }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-gray-600">New Clients</span>
-                  <span class="font-semibold text-green-600">5</span>
+                  <span class="font-semibold text-green-600">{{ sidebarStats.newClients }}</span>
                 </div>
               </div>
             </div>
           </div>
         </aside>
 
-        <!-- Contenuto principale -->
+        <!-- Contenuto principale (invariato) -->
         <main class="flex-1">
           <!-- Breadcrumb -->
           <div class="mb-6">
