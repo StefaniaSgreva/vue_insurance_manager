@@ -3,7 +3,6 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
       <p class="text-gray-600 mt-1">Manage insurance policies and coverage details</p>
-
       <button @click="openCreateModal" class="btn-primary flex items-center mt-4 md:mt-0">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -17,12 +16,12 @@
       </button>
     </div>
 
-    <!-- Filtri -->
+    <!-- Filtri (inviati al backend) -->
     <div class="bg-white rounded-xl p-4 mb-6 border border-gray-200">
       <div class="flex flex-wrap gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Policy Type</label>
-          <select v-model="filters.type" class="input py-1.5">
+          <select v-model="filters.type" @change="applyFilters" class="input py-1.5">
             <option value="">All Types</option>
             <option value="auto">Auto</option>
             <option value="home">Home</option>
@@ -32,7 +31,7 @@
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select v-model="filters.status" class="input py-1.5">
+          <select v-model="filters.status" @change="applyFilters" class="input py-1.5">
             <option value="">All Status</option>
             <option value="active">Active</option>
             <option value="expired">Expired</option>
@@ -46,7 +45,7 @@
       </div>
     </div>
 
-    <!-- Statistiche rapide -->
+    <!-- Statistiche -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-5">
         <div class="flex items-center">
@@ -120,7 +119,7 @@
       </div>
     </div>
 
-    <!-- Tabella polizze -->
+    <!-- Tabella polizze (dati paginati e filtrati dal backend) -->
     <div class="overflow-hidden rounded-xl border border-gray-200">
       <!-- Loading -->
       <div v-if="loading" class="p-8 text-center">
@@ -137,12 +136,12 @@
             r="10"
             stroke="currentColor"
             stroke-width="4"
-          ></circle>
+          />
           <path
             class="opacity-75"
             fill="currentColor"
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
+          />
         </svg>
         <p class="mt-2 text-gray-500">Loading policies...</p>
       </div>
@@ -150,11 +149,11 @@
       <!-- Error -->
       <div v-else-if="error" class="p-8 text-center text-red-600">
         <p>{{ error }}</p>
-        <button @click="loadPolicies" class="btn-secondary mt-4">Retry</button>
+        <button @click="loadPolicies(currentPage)" class="btn-secondary mt-4">Retry</button>
       </div>
 
       <!-- Nessuna polizza -->
-      <div v-else-if="filteredPolicies.length === 0" class="p-8 text-center">
+      <div v-else-if="policies.length === 0" class="p-8 text-center">
         <svg
           class="mx-auto h-12 w-12 text-gray-400"
           fill="none"
@@ -174,54 +173,60 @@
 
       <!-- Tabella -->
       <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
+        <table class="min-w-full table-fixed divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="w-24 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Policy #
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="w-32 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Client
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="w-20 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Type
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="w-24 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Premium
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="w-24 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Coverage
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="w-32 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Details
+              </th>
+              <th
+                scope="col"
+                class="w-40 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Period
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="w-24 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Status
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="w-28 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 Actions
               </th>
@@ -229,18 +234,25 @@
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr
-              v-for="policy in filteredPolicies"
+              v-for="policy in policies"
               :key="policy.id"
               class="hover:bg-gray-50 transition-colors"
             >
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">{{ policy.policy_number }}</div>
+              <td
+                class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 truncate"
+                :title="policy.policy_number"
+              >
+                {{ policy.policy_number }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ policy.client?.name || 'N/A' }}</div>
-                <div class="text-xs text-gray-500">{{ policy.client?.fiscal_code || '' }}</div>
+              <td class="px-4 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900 truncate" :title="policy.client?.name">
+                  {{ policy.client?.name || 'N/A' }}
+                </div>
+                <div class="text-xs text-gray-500 truncate">
+                  {{ policy.client?.fiscal_code || '' }}
+                </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-4 py-4 whitespace-nowrap">
                 <span
                   :class="typeClass(policy.type)"
                   class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize"
@@ -248,21 +260,48 @@
                   {{ policy.type }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">€{{ policy.premium.toFixed(2) }}</div>
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                €{{ (policy.premium ?? 0).toFixed(2) }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">€{{ policy.coverage_amount.toFixed(2) }}</div>
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                €{{ (policy.coverage_amount ?? 0).toFixed(2) }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                <div v-if="policy.details" class="truncate max-w-full">
+                  <span
+                    v-if="
+                      typeof policy.details.vehicle === 'string' &&
+                      typeof policy.details.year === 'string'
+                    "
+                    class="text-xs"
+                    :title="`${policy.details.vehicle} (${policy.details.year})`"
+                  >
+                    🚗 {{ policy.details.vehicle }} ({{ policy.details.year }})
+                  </span>
+                  <span
+                    v-else-if="typeof policy.details.property_address === 'string'"
+                    class="text-xs"
+                    :title="policy.details.property_address"
+                  >
+                    🏠 {{ truncateAddress(policy.details.property_address) }}
+                  </span>
+                  <span v-else class="text-xs text-gray-400">
+                    <button @click="viewDetails(policy)" class="text-primary-600 hover:underline">
+                      View
+                    </button>
+                  </span>
+                </div>
+                <div v-else class="text-xs text-gray-400">—</div>
+              </td>
+              <td class="px-4 py-4 whitespace-nowrap">
                 <div class="text-sm text-gray-900">{{ formatDate(policy.start_date) }}</div>
                 <div class="text-xs text-gray-500">→ {{ formatDate(policy.end_date) }}</div>
                 <div v-if="getDaysRemaining(policy.end_date) > 0" class="text-xs text-green-600">
-                  {{ getDaysRemaining(policy.end_date) }} days left
+                  {{ getDaysRemaining(policy.end_date) }}d
                 </div>
                 <div v-else class="text-xs text-red-600">Expired</div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-4 py-4 whitespace-nowrap">
                 <span
                   :class="statusClass(policy.status)"
                   class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full capitalize"
@@ -270,20 +309,114 @@
                   {{ policy.status }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
                 <button
                   @click="editPolicy(policy)"
-                  class="text-primary-600 hover:text-primary-900 mr-3"
+                  class="text-primary-600 hover:text-primary-900 mr-2"
                 >
                   Edit
                 </button>
                 <button @click="confirmDelete(policy)" class="text-red-600 hover:text-red-900">
-                  Delete
+                  Del
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Paginazione lato backend -->
+      <div
+        v-if="!loading && !error && total > 0"
+        class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6"
+      >
+        <div class="flex justify-between sm:hidden">
+          <button
+            @click="prevPage"
+            :disabled="currentPage === 1"
+            class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <button
+            @click="nextPage"
+            :disabled="currentPage === lastPage"
+            class="relative ml-3 inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-700">
+              Showing
+              <span class="font-medium">{{ (currentPage - 1) * perPage + 1 }}</span>
+              to
+              <span class="font-medium">{{ Math.min(currentPage * perPage, total) }}</span>
+              of
+              <span class="font-medium">{{ total }}</span>
+              results
+            </p>
+          </div>
+          <div>
+            <nav
+              class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
+              aria-label="Pagination"
+            >
+              <button
+                @click="prevPage"
+                :disabled="currentPage === 1"
+                class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50"
+              >
+                <span class="sr-only">Previous</span>
+                <svg
+                  class="w-5 h-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                @click="goToPage(page)"
+                :class="[
+                  page === currentPage
+                    ? 'z-10 bg-primary-50 border-primary-500 text-primary-600'
+                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+                  'relative inline-flex items-center px-4 py-2 text-sm font-medium border',
+                ]"
+              >
+                {{ page }}
+              </button>
+              <button
+                @click="nextPage"
+                :disabled="currentPage === lastPage"
+                class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50"
+              >
+                <span class="sr-only">Next</span>
+                <svg
+                  class="w-5 h-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            </nav>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -336,7 +469,7 @@
             <div>
               <label for="premium" class="label">Premium (€) *</label>
               <input
-                v-model="form.premium"
+                v-model.number="form.premium"
                 type="number"
                 step="0.01"
                 id="premium"
@@ -347,7 +480,7 @@
             <div>
               <label for="coverage_amount" class="label">Coverage Amount (€) *</label>
               <input
-                v-model="form.coverage_amount"
+                v-model.number="form.coverage_amount"
                 type="number"
                 step="0.01"
                 id="coverage_amount"
@@ -378,6 +511,19 @@
             </select>
           </div>
 
+          <!-- Campo DETAILS (JSON) -->
+          <div>
+            <label for="details" class="label">Additional Details (JSON)</label>
+            <textarea
+              v-model="detailsText"
+              id="details"
+              rows="3"
+              class="input font-mono text-sm"
+              placeholder='{"vehicle":"Audi","year":"2020"}'
+            ></textarea>
+            <p class="text-xs text-gray-500 mt-1">Inserisci un oggetto JSON valido (opzionale)</p>
+          </div>
+
           <div class="flex justify-end space-x-3 pt-4">
             <button type="button" @click="closeModal" class="btn-secondary">Cancel</button>
             <button type="submit" class="btn-primary" :disabled="saving">
@@ -394,12 +540,12 @@
                     r="10"
                     stroke="currentColor"
                     stroke-width="4"
-                  ></circle>
+                  />
                   <path
                     class="opacity-75"
                     fill="currentColor"
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
+                  />
                 </svg>
                 Saving...
               </span>
@@ -413,11 +559,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import axios from 'axios'
 import { apiService } from '@/api/client'
 import type { Client, Policy } from '@/types/insurance'
 
-// Stato
+// ----------------------------------------------------------------------
+// Interfaccia locale per le statistiche
+// ----------------------------------------------------------------------
+interface PolicyStats {
+  totalPolicies: number
+  activePolicies: number
+  expiredPolicies: number
+  totalPremium: number
+}
+
+// --- Stato ---
 const policies = ref<Policy[]>([])
 const clients = ref<Client[]>([])
 const loading = ref(true)
@@ -426,15 +583,29 @@ const saving = ref(false)
 const showModal = ref(false)
 const editingPolicy = ref<Policy | null>(null)
 
-// Filtri
+// Paginazione lato backend
+const currentPage = ref(1)
+const lastPage = ref(1)
+const perPage = ref(10)
+const total = ref(0)
+
+// Filtri (inviati al backend)
 const filters = ref({
   type: '',
   status: '',
 })
 
+// Statistiche
+const stats = ref<PolicyStats>({
+  totalPolicies: 0,
+  activePolicies: 0,
+  expiredPolicies: 0,
+  totalPremium: 0,
+})
+
 // Form
 const form = reactive({
-  client_id: 0,
+  client_id: '',
   policy_number: '',
   type: 'auto' as Policy['type'],
   premium: 0,
@@ -443,88 +614,171 @@ const form = reactive({
   end_date: '',
   status: 'active' as Policy['status'],
 })
+const detailsText = ref('')
 
-// Statistiche calcolate
-const stats = computed(() => {
-  const totalPolicies = policies.value.length
-  const activePolicies = policies.value.filter((p) => p.status === 'active').length
-  const expiredPolicies = policies.value.filter((p) => p.status === 'expired').length
-  const totalPremium = policies.value.reduce((sum, p) => sum + p.premium, 0)
-  return { totalPolicies, activePolicies, expiredPolicies, totalPremium }
-})
+// --- Numeri pagina visibili ---
+const visiblePages = computed(() => {
+  const delta = 2
+  const range: number[] = []
+  const rangeWithDots: (number | string)[] = []
+  let l: number | undefined
 
-// Polizze filtrate
-const filteredPolicies = computed(() => {
-  return policies.value.filter((policy) => {
-    const matchesType = !filters.value.type || policy.type === filters.value.type
-    const matchesStatus = !filters.value.status || policy.status === filters.value.status
-    return matchesType && matchesStatus
+  for (let i = 1; i <= lastPage.value; i++) {
+    if (
+      i === 1 ||
+      i === lastPage.value ||
+      (i >= currentPage.value - delta && i <= currentPage.value + delta)
+    ) {
+      range.push(i)
+    }
+  }
+
+  range.forEach((i) => {
+    if (l) {
+      if (i - l === 2) {
+        rangeWithDots.push(l + 1)
+      } else if (i - l !== 1) {
+        rangeWithDots.push('...')
+      }
+    }
+    rangeWithDots.push(i)
+    l = i
   })
+
+  return rangeWithDots
 })
 
-// Formatta data
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('it-IT')
+// --- Caricamento polizze con paginazione e filtri (lato backend) ---
+const loadPolicies = async (page: number = 1) => {
+  loading.value = true
+  error.value = null
+  try {
+    const response = await apiService.getPolicies(page, perPage.value, {
+      type: filters.value.type || undefined,
+      status: filters.value.status || undefined,
+    })
+    policies.value = response.data
+    currentPage.value = response.meta.current_page
+    lastPage.value = response.meta.last_page
+    total.value = response.meta.total
+    await loadStats()
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      error.value = `API Error (${err.response?.status}): ${err.response?.data?.message || err.message}`
+    } else if (err instanceof Error) {
+      error.value = err.message
+    } else {
+      error.value = 'Failed to load policies'
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
-// Giorni rimanenti
+// --- Caricamento statistiche (con fallback) ---
+const loadStats = async () => {
+  try {
+    const data = await apiService.getStats()
+    stats.value = {
+      totalPolicies: data.total_policies,
+      activePolicies: data.active_policies,
+      expiredPolicies: data.expired_policies,
+      totalPremium: Number(data.total_premium),
+    }
+  } catch {
+    console.warn('⚠️ Statistiche non disponibili, uso fallback')
+    stats.value = {
+      totalPolicies: total.value, // usiamo il totale della paginazione
+      activePolicies: policies.value.filter((p) => p.status?.toLowerCase() === 'active').length,
+      expiredPolicies: policies.value.filter((p) => p.status?.toLowerCase() === 'expired').length,
+      totalPremium: policies.value.reduce((sum, p) => sum + (Number(p.premium) || 0), 0),
+    }
+  }
+}
+
+// --- Caricamento clienti ---
+const loadClients = async () => {
+  try {
+    clients.value = await apiService.getClients()
+  } catch (err) {
+    console.error('Failed to load clients:', err)
+  }
+}
+
+// --- Filtri ---
+const applyFilters = () => {
+  currentPage.value = 1
+  loadPolicies(1)
+}
+
+const clearFilters = () => {
+  filters.value = { type: '', status: '' }
+  applyFilters()
+}
+
+// --- Paginazione ---
+const nextPage = () => {
+  if (currentPage.value < lastPage.value) {
+    loadPolicies(currentPage.value + 1)
+  }
+}
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    loadPolicies(currentPage.value - 1)
+  }
+}
+const goToPage = (page: number | string) => {
+  if (typeof page !== 'number') return
+  if (page >= 1 && page <= lastPage.value) {
+    loadPolicies(page)
+  }
+}
+
+// --- Watcher: quando cambiano i filtri, resetta a pagina 1 ---
+watch(
+  () => filters.value,
+  () => {
+    currentPage.value = 1
+    loadPolicies(1)
+  },
+  { deep: true },
+)
+
+// --- Utility ---
+const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('it-IT')
 const getDaysRemaining = (endDate: string) => {
-  const end = new Date(endDate)
-  const today = new Date()
-  const diff = end.getTime() - today.getTime()
+  const diff = new Date(endDate).getTime() - new Date().getTime()
   return Math.ceil(diff / (1000 * 60 * 60 * 24))
 }
+const truncateAddress = (address: string) =>
+  address.length > 30 ? address.substring(0, 27) + '...' : address
+const viewDetails = (policy: Policy) => alert(JSON.stringify(policy.details, null, 2))
 
-// Classi CSS
+// --- Classi dinamiche (case‑insensitive) ---
 const typeClass = (type: string) => {
+  const t = type.toLowerCase()
   const classes = {
     auto: 'bg-blue-100 text-blue-800',
     home: 'bg-green-100 text-green-800',
     life: 'bg-purple-100 text-purple-800',
     health: 'bg-pink-100 text-pink-800',
   }
-  return classes[type as keyof typeof classes] || 'bg-gray-100 text-gray-800'
+  return classes[t as keyof typeof classes] || 'bg-gray-100 text-gray-800'
 }
-
 const statusClass = (status: string) => {
+  const s = status.toLowerCase()
   const classes = {
     active: 'bg-green-100 text-green-800',
     expired: 'bg-red-100 text-red-800',
     cancelled: 'bg-yellow-100 text-yellow-800',
     pending: 'bg-orange-100 text-orange-800',
   }
-  return classes[status as keyof typeof classes] || 'bg-gray-100 text-gray-800'
+  return classes[s as keyof typeof classes] || 'bg-gray-100 text-gray-800'
 }
 
-// Carica dati
-const loadPolicies = async () => {
-  loading.value = true
-  error.value = null
-  try {
-    policies.value = await apiService.getPolicies()
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      error.value = err.message
-    } else {
-      error.value = 'Failed to load policies'
-    }
-    console.error(err)
-  } finally {
-    loading.value = false
-  }
-}
-
-const loadClients = async () => {
-  try {
-    clients.value = await apiService.getClients()
-  } catch (err: unknown) {
-    console.error('Failed to load clients:', err)
-  }
-}
-
-// Reset form
+// --- Gestione form (CRUD) ---
 const resetForm = () => {
-  form.client_id = 0
+  form.client_id = ''
   form.policy_number = ''
   form.type = 'auto'
   form.premium = 0
@@ -532,13 +786,12 @@ const resetForm = () => {
   form.start_date = ''
   form.end_date = ''
   form.status = 'active'
+  detailsText.value = ''
   editingPolicy.value = null
 }
 
-// Apri modale per nuova polizza
 const openCreateModal = () => {
   resetForm()
-  // Valori di default con slice(0,10) – più sicuro di split
   const today = new Date()
   const nextYear = new Date()
   nextYear.setFullYear(today.getFullYear() + 1)
@@ -547,42 +800,60 @@ const openCreateModal = () => {
   showModal.value = true
 }
 
-// Apri modale per modifica
 const editPolicy = (policy: Policy) => {
   editingPolicy.value = policy
-  form.client_id = policy.client_id
+  form.client_id = String(policy.client_id)
   form.policy_number = policy.policy_number
   form.type = policy.type
-  form.premium = policy.premium
-  form.coverage_amount = policy.coverage_amount
-  form.start_date = policy.start_date
-  form.end_date = policy.end_date
+  form.premium = Number(policy.premium)
+  form.coverage_amount = Number(policy.coverage_amount)
+  form.start_date = policy.start_date.slice(0, 10)
+  form.end_date = policy.end_date.slice(0, 10)
   form.status = policy.status
+  detailsText.value = policy.details ? JSON.stringify(policy.details, null, 2) : ''
   showModal.value = true
 }
 
-// Chiudi modale
 const closeModal = () => {
   showModal.value = false
   resetForm()
 }
 
-// Salva polizza
 const savePolicy = async () => {
   saving.value = true
+  let details = null
+  if (detailsText.value.trim()) {
+    try {
+      details = JSON.parse(detailsText.value)
+    } catch {
+      alert('Invalid JSON format in details field')
+      saving.value = false
+      return
+    }
+  }
+  const policyData = {
+    ...form,
+    client_id: Number(form.client_id),
+    details,
+  }
   try {
     if (editingPolicy.value) {
-      const updated = await apiService.updatePolicy(editingPolicy.value.id, form)
+      const updated = await apiService.updatePolicy(editingPolicy.value.id, policyData)
       const index = policies.value.findIndex((p) => p.id === updated.id)
       if (index !== -1) policies.value[index] = updated
     } else {
-      const newPolicy = await apiService.createPolicy(form)
+      const newPolicy = await apiService.createPolicy(policyData)
       policies.value.push(newPolicy)
     }
     closeModal()
+    // Ricarica la pagina corrente
+    loadPolicies(currentPage.value)
   } catch (err: unknown) {
     let errorMessage = 'An error occurred while saving the policy'
-    if (err instanceof Error) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.error('Validation error:', err.response.data)
+      errorMessage = err.response.data.message || errorMessage
+    } else if (err instanceof Error) {
       errorMessage = err.message
     }
     alert(`Error: ${errorMessage}`)
@@ -591,32 +862,27 @@ const savePolicy = async () => {
   }
 }
 
-// Elimina polizza
 const confirmDelete = async (policy: Policy) => {
   if (!confirm(`Are you sure you want to delete policy ${policy.policy_number}?`)) return
   try {
     await apiService.deletePolicy(policy.id)
     policies.value = policies.value.filter((p) => p.id !== policy.id)
+    // Ricarica la pagina corrente
+    loadPolicies(currentPage.value)
   } catch (err: unknown) {
     let errorMessage = 'Failed to delete policy'
-    if (err instanceof Error) {
-      errorMessage = err.message
-    }
+    if (err instanceof Error) errorMessage = err.message
     alert(`Error: ${errorMessage}`)
   }
 }
 
-// Pulisci filtri
-const clearFilters = () => {
-  filters.value = { type: '', status: '' }
-}
-
+// --- Mount ---
 onMounted(() => {
-  loadPolicies()
+  loadPolicies(1)
   loadClients()
 })
 </script>
 
 <style scoped>
-/* Tailwind si occupa di tutto */
+/* Tutti gli stili sono gestiti da Tailwind */
 </style>

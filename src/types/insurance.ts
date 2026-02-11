@@ -25,8 +25,8 @@ export interface Policy {
 }
 
 export interface Stats {
-  total_clients: number
   total_policies: number
   active_policies: number
+  expired_policies: number
   total_premium: number
 }
