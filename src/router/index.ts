@@ -1,8 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import ClientView from '@/views/pages/ClientView.vue'
-import PoliciesView from '@/views/pages/PoliciesView.vue'
-import ReportsView from '@/views/pages/ReportsView.vue'
-import SettingsView from '@/views/pages/SettingsView.vue'
 import DashboardView from '@/views/pages/DashboardView.vue'
 // import ApiTestView from '../views/pages/ApiTestView.vue'
 
@@ -18,26 +14,27 @@ const router = createRouter({
       path: '/',
       name: 'dashboard',
       component: DashboardView,
+      meta: { title: 'Dashboard', breadcrumb: null },
     },
     {
       path: '/clients',
       name: 'clients',
-      component: ClientView,
+      component: () => import('@/views/pages/ClientView.vue'),
     },
     {
       path: '/policies',
       name: 'policies',
-      component: PoliciesView,
+      component: () => import('@/views/pages/PoliciesView.vue'),
     },
     {
       path: '/reports',
       name: 'reports',
-      component: ReportsView,
+      component: () => import('@/views/pages/ReportsView.vue'),
     },
     {
       path: '/settings',
       name: 'settings',
-      component: SettingsView,
+      component: () => import('@/views/pages/SettingsView.vue'),
     },
   ],
 })
