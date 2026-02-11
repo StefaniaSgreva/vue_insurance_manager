@@ -1,9 +1,11 @@
 <template>
   <div class="clients-view">
-    <!-- Header con azioni -->
+    <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
-      <p class="text-gray-600 mt-1">Manage your insurance clients and their information</p>
-
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900">Client Management</h2>
+        <p class="text-gray-600 mt-1">Manage your insurance clients and their information</p>
+      </div>
       <button @click="openCreateModal" class="btn-primary flex items-center mt-4 md:mt-0">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -17,7 +19,7 @@
       </button>
     </div>
 
-    <!-- Statistiche dinamiche -->
+    <!-- Statistiche clienti (dinamiche) -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-5">
         <div class="flex items-center">
@@ -34,7 +36,6 @@
           </div>
         </div>
       </div>
-
       <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-5">
         <div class="flex items-center">
           <div class="p-3 rounded-lg bg-green-500 bg-opacity-20">
@@ -48,13 +49,10 @@
           </div>
           <div class="ml-4">
             <p class="text-sm text-green-700">Active Policies</p>
-            <p class="text-2xl font-bold text-green-900">
-              {{ stats.activePolicies }}
-            </p>
+            <p class="text-2xl font-bold text-green-900">{{ stats.activePolicies }}</p>
           </div>
         </div>
       </div>
-
       <div class="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-5">
         <div class="flex items-center">
           <div class="p-3 rounded-lg bg-purple-500 bg-opacity-20">
@@ -75,7 +73,6 @@
           </div>
         </div>
       </div>
-
       <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-5">
         <div class="flex items-center">
           <div class="p-3 rounded-lg bg-orange-500 bg-opacity-20">
@@ -95,7 +92,7 @@
       </div>
     </div>
 
-    <!-- Barra di ricerca (solo UI, la logica è già nel template) -->
+    <!-- Barra di ricerca -->
     <div class="mb-4 flex justify-end">
       <div class="relative w-full md:w-64">
         <input
@@ -122,6 +119,7 @@
 
     <!-- Tabella clienti -->
     <div class="overflow-hidden rounded-xl border border-gray-200">
+      <!-- Loading -->
       <div v-if="loading" class="p-8 text-center">
         <svg
           class="animate-spin h-8 w-8 text-primary-600 mx-auto"
@@ -136,21 +134,23 @@
             r="10"
             stroke="currentColor"
             stroke-width="4"
-          ></circle>
+          />
           <path
             class="opacity-75"
             fill="currentColor"
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
+          />
         </svg>
         <p class="mt-2 text-gray-500">Loading clients...</p>
       </div>
 
+      <!-- Error -->
       <div v-else-if="error" class="p-8 text-center text-red-600">
         <p>{{ error }}</p>
         <button @click="loadClients" class="btn-secondary mt-4">Retry</button>
       </div>
 
+      <!-- Nessun cliente -->
       <div v-else-if="filteredClients.length === 0" class="p-8 text-center">
         <svg
           class="mx-auto h-12 w-12 text-gray-400"
@@ -173,6 +173,7 @@
         </p>
       </div>
 
+      <!-- Tabella -->
       <div v-else class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
@@ -193,13 +194,13 @@
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Policies
+                Fiscal Code
               </th>
               <th
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Status
+                Policies
               </th>
               <th
                 scope="col"
@@ -225,35 +226,22 @@
                     </div>
                   </div>
                   <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900">
-                      {{ client.name }}
-                    </div>
-                    <div class="text-sm text-gray-500">
-                      {{ client.fiscal_code }}
-                    </div>
+                    <div class="text-sm font-medium text-gray-900">{{ client.name }}</div>
                   </div>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-gray-900">{{ client.email }}</div>
-                <div class="text-sm text-gray-500">
-                  {{ client.phone || 'No phone' }}
-                </div>
+                <div class="text-xs text-gray-500">{{ client.phone || 'No phone' }}</div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                  <span
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
-                  >
-                    {{ client.policies_count || 0 }} active
-                  </span>
-                </div>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ client.fiscal_code }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
                 >
-                  Active
+                  {{ client.policies_count || 0 }} active
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -273,9 +261,9 @@
       </div>
     </div>
 
-    <!-- Modal per aggiungere/modificare cliente -->
+    <!-- Modal per creare/modificare cliente -->
     <div
-      v-if="showModal"
+      v-if="clientModalStore.isOpen"
       class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50"
       @click.self="closeModal"
     >
@@ -286,7 +274,7 @@
 
         <form @submit.prevent="saveClient" class="space-y-4">
           <div>
-            <label for="name" class="label">Full Name</label>
+            <label for="name" class="label">Full Name *</label>
             <input
               v-model="form.name"
               type="text"
@@ -296,9 +284,8 @@
               placeholder="John Doe"
             />
           </div>
-
           <div>
-            <label for="email" class="label">Email Address</label>
+            <label for="email" class="label">Email Address *</label>
             <input
               v-model="form.email"
               type="email"
@@ -308,7 +295,6 @@
               placeholder="john@example.com"
             />
           </div>
-
           <div>
             <label for="phone" class="label">Phone Number</label>
             <input
@@ -319,9 +305,8 @@
               placeholder="+39 123 456 7890"
             />
           </div>
-
           <div>
-            <label for="fiscal_code" class="label">Fiscal Code</label>
+            <label for="fiscal_code" class="label">Fiscal Code *</label>
             <input
               v-model="form.fiscal_code"
               type="text"
@@ -331,7 +316,6 @@
               placeholder="ABCDEF12G34H567I"
             />
           </div>
-
           <div class="flex justify-end space-x-3 pt-4">
             <button type="button" @click="closeModal" class="btn-secondary">Cancel</button>
             <button type="submit" class="btn-primary" :disabled="saving">
@@ -348,12 +332,12 @@
                     r="10"
                     stroke="currentColor"
                     stroke-width="4"
-                  ></circle>
+                  />
                   <path
                     class="opacity-75"
                     fill="currentColor"
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
+                  />
                 </svg>
                 Saving...
               </span>
@@ -367,20 +351,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import axios from 'axios'
 import { apiService } from '@/api/client'
 import type { Client } from '@/types/insurance'
+import { useClientModalStore } from '@/stores/clientModalStore'
 
-// Stato
+const clientModalStore = useClientModalStore()
+
+// --- Stato ---
 const clients = ref<Client[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const saving = ref(false)
-const showModal = ref(false)
 const editingClient = ref<Client | null>(null)
 const searchQuery = ref('')
 
-// Form reattivo
+// --- Form ---
 const form = reactive({
   name: '',
   email: '',
@@ -388,54 +375,52 @@ const form = reactive({
   fiscal_code: '',
 })
 
-// Statistiche calcolate
+// --- Statistiche calcolate ---
 const stats = computed(() => {
   const totalClients = clients.value.length
-  const totalPolicies = clients.value.reduce((sum, client) => sum + (client.policies_count || 0), 0)
-  // Questi dati andrebbero presi dall'API /stats, ma per ora li calcoliamo approssimativamente
-  const activePolicies = totalPolicies // sostituisci con dati reali se disponibili
-  const totalPremium = totalPolicies * 1200 // esempio
+  const totalPolicies = clients.value.reduce((sum, c) => sum + (c.policies_count || 0), 0)
+  const totalPremium = totalPolicies * 1200 // esempio, in futuro prendere da API
   const avgPremium = totalPolicies > 0 ? totalPremium / totalPolicies : 0
-
   return {
     totalClients,
-    activePolicies,
+    activePolicies: totalPolicies,
     totalPremium,
     avgPremium,
   }
 })
 
-// Clienti filtrati per ricerca
+// --- Filtro ricerca ---
 const filteredClients = computed(() => {
   if (!searchQuery.value) return clients.value
-  const query = searchQuery.value.toLowerCase()
+  const q = searchQuery.value.toLowerCase()
   return clients.value.filter(
-    (client) =>
-      client.name.toLowerCase().includes(query) ||
-      client.email.toLowerCase().includes(query) ||
-      client.fiscal_code.toLowerCase().includes(query),
+    (c) =>
+      c.name.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q) ||
+      c.fiscal_code.toLowerCase().includes(q),
   )
 })
 
-// Carica clienti dal backend
+// --- Caricamento clienti (con conteggio polizze) ---
 const loadClients = async () => {
   loading.value = true
   error.value = null
   try {
     clients.value = await apiService.getClients()
   } catch (err: unknown) {
-    if (err instanceof Error) {
+    if (axios.isAxiosError(err)) {
+      error.value = `API Error (${err.response?.status}): ${err.response?.data?.message || err.message}`
+    } else if (err instanceof Error) {
       error.value = err.message
     } else {
       error.value = 'Failed to load clients'
     }
-    console.error(err)
   } finally {
     loading.value = false
   }
 }
 
-// Reset del form
+// --- Reset form ---
 const resetForm = () => {
   form.name = ''
   form.email = ''
@@ -444,46 +429,47 @@ const resetForm = () => {
   editingClient.value = null
 }
 
-// Apri modale per nuovo cliente
+// --- Apertura modale per nuovo cliente ---
 const openCreateModal = () => {
   resetForm()
-  showModal.value = true
+  clientModalStore.openModal()
 }
 
-// Apri modale per modifica
+// --- Apertura modale per modifica ---
 const editClient = (client: Client) => {
   editingClient.value = client
   form.name = client.name
   form.email = client.email
   form.phone = client.phone || ''
   form.fiscal_code = client.fiscal_code
-  showModal.value = true
+  clientModalStore.openModal()
 }
 
-// Chiudi modale
+// --- Chiusura modale ---
 const closeModal = () => {
-  showModal.value = false
+  clientModalStore.closeModal()
   resetForm()
 }
 
-// Salva cliente (crea o aggiorna)
+// --- Salvataggio (creazione/aggiornamento) ---
 const saveClient = async () => {
   saving.value = true
   try {
     if (editingClient.value) {
-      // Update
       const updated = await apiService.updateClient(editingClient.value.id, form)
       const index = clients.value.findIndex((c) => c.id === updated.id)
       if (index !== -1) clients.value[index] = updated
     } else {
-      // Create
       const newClient = await apiService.createClient(form)
       clients.value.push(newClient)
     }
     closeModal()
   } catch (err: unknown) {
     let errorMessage = 'An error occurred while saving the client'
-    if (err instanceof Error) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.error('Validation error:', err.response.data)
+      errorMessage = err.response.data.message || errorMessage
+    } else if (err instanceof Error) {
       errorMessage = err.message
     }
     alert(`Error: ${errorMessage}`)
@@ -492,7 +478,7 @@ const saveClient = async () => {
   }
 }
 
-// Conferma ed elimina cliente
+// --- Eliminazione ---
 const confirmDelete = async (client: Client) => {
   if (!confirm(`Are you sure you want to delete ${client.name}?`)) return
   try {
@@ -500,19 +486,27 @@ const confirmDelete = async (client: Client) => {
     clients.value = clients.value.filter((c) => c.id !== client.id)
   } catch (err: unknown) {
     let errorMessage = 'Failed to delete client'
-    if (err instanceof Error) {
-      errorMessage = err.message
-    }
+    if (err instanceof Error) errorMessage = err.message
     alert(`Error: ${errorMessage}`)
   }
 }
 
-// Carica i clienti all'avvio
+// --- Watcher: reset form quando si apre la modale senza editing ---
+watch(
+  () => clientModalStore.isOpen,
+  (isOpen) => {
+    if (isOpen && !editingClient.value) {
+      resetForm()
+    }
+  },
+)
+
+// --- Mount ---
 onMounted(() => {
   loadClients()
 })
 </script>
 
 <style scoped>
-/* I componenti utilizzano classi Tailwind globali definite in main.css */
+/* Tailwind gestisce tutto */
 </style>

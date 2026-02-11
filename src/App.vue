@@ -5,10 +5,12 @@ import TheHeader from './components/layout/TheHeader.vue'
 import TheFooter from './components/layout/TheFooter.vue'
 import { apiService } from '@/api/client'
 import { usePolicyModalStore } from '@/stores/policyModalStore'
+import { useClientModalStore } from '@/stores/clientModalStore'
 
 const router = useRouter()
 const route = useRoute()
 const policyModalStore = usePolicyModalStore()
+const clientModalStore = useClientModalStore()
 
 // --- Apertura modale nuova polizza (via store) ---
 const openNewPolicyModal = () => {
@@ -16,6 +18,13 @@ const openNewPolicyModal = () => {
   // Se non siamo già sulla pagina delle polizze, naviga
   if (route.path !== '/policies') {
     router.push('/policies')
+  }
+}
+
+const openNewClientModal = () => {
+  clientModalStore.openModal()
+  if (route.path !== '/clients') {
+    router.push('/clients')
   }
 }
 
@@ -73,8 +82,8 @@ onMounted(() => {
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
             <div class="space-y-3">
               <button
-                @click="router.push('/clients/new')"
-                class="w-full flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                @click="openNewClientModal"
+                class="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
