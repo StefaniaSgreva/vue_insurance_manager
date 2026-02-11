@@ -119,7 +119,7 @@
       </div>
     </div>
 
-    <!-- Tabella polizze (dati paginati e filtrati dal backend) -->
+    <!-- Tabella polizze -->
     <div class="overflow-hidden rounded-xl border border-gray-200">
       <!-- Loading -->
       <div v-if="loading" class="p-8 text-center">
@@ -349,13 +349,9 @@
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
           <div>
             <p class="text-sm text-gray-700">
-              Showing
-              <span class="font-medium">{{ (currentPage - 1) * perPage + 1 }}</span>
-              to
-              <span class="font-medium">{{ Math.min(currentPage * perPage, total) }}</span>
-              of
-              <span class="font-medium">{{ total }}</span>
-              results
+              Showing <span class="font-medium">{{ (currentPage - 1) * perPage + 1 }}</span> to
+              <span class="font-medium">{{ Math.min(currentPage * perPage, total) }}</span> of
+              <span class="font-medium">{{ total }}</span> results
             </p>
           </div>
           <div>
@@ -422,7 +418,7 @@
 
     <!-- Modal per creare/modificare polizza -->
     <div
-      v-if="showModal"
+      v-if="policyModalStore.isOpen"
       class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50"
       @click.self="closeModal"
     >
@@ -563,6 +559,9 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { apiService } from '@/api/client'
 import type { Client, Policy } from '@/types/insurance'
+import { usePolicyModalStore } from '@/stores/policyModalStore'
+
+const policyModalStore = usePolicyModalStore()
 
 // ----------------------------------------------------------------------
 // Interfaccia locale per le statistiche
@@ -580,7 +579,6 @@ const clients = ref<Client[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const saving = ref(false)
-const showModal = ref(false)
 const editingPolicy = ref<Policy | null>(null)
 
 // Paginazione lato backend
@@ -688,7 +686,7 @@ const loadStats = async () => {
   } catch {
     console.warn('⚠️ Statistiche non disponibili, uso fallback')
     stats.value = {
-      totalPolicies: total.value, // usiamo il totale della paginazione
+      totalPolicies: total.value,
       activePolicies: policies.value.filter((p) => p.status?.toLowerCase() === 'active').length,
       expiredPolicies: policies.value.filter((p) => p.status?.toLowerCase() === 'expired').length,
       totalPremium: policies.value.reduce((sum, p) => sum + (Number(p.premium) || 0), 0),
@@ -797,7 +795,7 @@ const openCreateModal = () => {
   nextYear.setFullYear(today.getFullYear() + 1)
   form.start_date = today.toISOString().slice(0, 10)
   form.end_date = nextYear.toISOString().slice(0, 10)
-  showModal.value = true
+  policyModalStore.openModal()
 }
 
 const editPolicy = (policy: Policy) => {
@@ -811,11 +809,11 @@ const editPolicy = (policy: Policy) => {
   form.end_date = policy.end_date.slice(0, 10)
   form.status = policy.status
   detailsText.value = policy.details ? JSON.stringify(policy.details, null, 2) : ''
-  showModal.value = true
+  policyModalStore.openModal()
 }
 
 const closeModal = () => {
-  showModal.value = false
+  policyModalStore.closeModal()
   resetForm()
 }
 
@@ -846,7 +844,6 @@ const savePolicy = async () => {
       policies.value.push(newPolicy)
     }
     closeModal()
-    // Ricarica la pagina corrente
     loadPolicies(currentPage.value)
   } catch (err: unknown) {
     let errorMessage = 'An error occurred while saving the policy'
@@ -867,7 +864,6 @@ const confirmDelete = async (policy: Policy) => {
   try {
     await apiService.deletePolicy(policy.id)
     policies.value = policies.value.filter((p) => p.id !== policy.id)
-    // Ricarica la pagina corrente
     loadPolicies(currentPage.value)
   } catch (err: unknown) {
     let errorMessage = 'Failed to delete policy'
@@ -875,6 +871,21 @@ const confirmDelete = async (policy: Policy) => {
     alert(`Error: ${errorMessage}`)
   }
 }
+
+// Watcher per resettare il form quando la modale si apre senza editing
+watch(
+  () => policyModalStore.isOpen,
+  (isOpen) => {
+    if (isOpen && !editingPolicy.value) {
+      resetForm()
+      const today = new Date()
+      const nextYear = new Date()
+      nextYear.setFullYear(today.getFullYear() + 1)
+      form.start_date = today.toISOString().slice(0, 10)
+      form.end_date = nextYear.toISOString().slice(0, 10)
+    }
+  },
+)
 
 // --- Mount ---
 onMounted(() => {

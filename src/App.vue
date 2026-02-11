@@ -1,54 +1,62 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { RouterView } from 'vue-router'
+import { RouterView, useRouter, useRoute } from 'vue-router'
 import TheHeader from './components/layout/TheHeader.vue'
 import TheFooter from './components/layout/TheFooter.vue'
 import { apiService } from '@/api/client'
+import { usePolicyModalStore } from '@/stores/policyModalStore'
 
-// Stato per le statistiche laterali
+const router = useRouter()
+const route = useRoute()
+const policyModalStore = usePolicyModalStore()
+
+// --- Apertura modale nuova polizza (via store) ---
+const openNewPolicyModal = () => {
+  policyModalStore.openModal()
+  // Se non siamo già sulla pagina delle polizze, naviga
+  if (route.path !== '/policies') {
+    router.push('/policies')
+  }
+}
+
+// --- Statistiche laterali ---
 const sidebarStats = ref({
   activePolicies: 0,
   expiringSoon: 0,
   newClients: 0,
 })
 
-// Carica le statistiche reali
-onMounted(async () => {
+const loadSidebarStats = async () => {
   try {
-    // 1. Carica le statistiche generali
+    // 1. Statistiche globali (active_policies, total_policies, expired_policies, total_premium)
     const stats = await apiService.getStats()
     sidebarStats.value.activePolicies = stats.active_policies
 
-    // 2. Carica i clienti (per new clients)
+    // 2. Totale clienti (usato come "New Clients")
     const clients = await apiService.getClients()
     sidebarStats.value.newClients = clients.length
 
-    // 3. Calcola le polizze in scadenza (richiede una chiamata filtrata)
-    //    Opzione: possiamo fare una chiamata API per polizze attive con end_date ≤ 30gg
-    //    Se il backend non ha un endpoint specifico, calcoliamo sulle polizze caricate (ma solo se già in store)
-    //    Alternativa: per ora lasciamo un placeholder dinamico
-    //    Qui usiamo una chiamata separata per polizze in scadenza
+    // 3. Polizze attive in scadenza nei prossimi 30 giorni
     const expiringResponse = await apiService.getPolicies(1, 100, {
       status: 'active',
-      // Nota: il backend deve supportare il filtro per data. Se non lo fa,
-      // calcoliamo lato frontend sulle polizze attive (ma sarebbe inefficiente).
-      // Per ora mostriamo 0, o usiamo un valore di esempio.
-      // In attesa di implementare un endpoint dedicato, lasciamo statico? Meglio mostrare 0.
     })
-    // Calcolo lato frontend se abbiamo le polizze attive
     const today = new Date()
     const thirtyDaysFromNow = new Date()
     thirtyDaysFromNow.setDate(today.getDate() + 30)
-    const activePolicies = expiringResponse.data
-    const expiringCount = activePolicies.filter((p) => {
+
+    const expiringCount = expiringResponse.data.filter((p) => {
       const endDate = new Date(p.end_date)
-      return endDate <= thirtyDaysFromNow && endDate >= today
+      return endDate >= today && endDate <= thirtyDaysFromNow
     }).length
     sidebarStats.value.expiringSoon = expiringCount
   } catch (error) {
     console.error('Failed to load sidebar stats:', error)
-    // Valori di fallback (0)
+    // Fallback: valori già inizializzati a 0
   }
+}
+
+onMounted(() => {
+  loadSidebarStats()
 })
 </script>
 
@@ -65,7 +73,7 @@ onMounted(async () => {
             <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
             <div class="space-y-3">
               <button
-                @click="$router.push('/clients/new')"
+                @click="router.push('/clients/new')"
                 class="w-full flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
               >
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +87,7 @@ onMounted(async () => {
                 New Client
               </button>
               <button
-                @click="$router.push('/policies/new')"
+                @click="openNewPolicyModal"
                 class="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,7 +125,7 @@ onMounted(async () => {
           </div>
         </aside>
 
-        <!-- Contenuto principale (invariato) -->
+        <!-- Contenuto principale -->
         <main class="flex-1">
           <!-- Breadcrumb -->
           <div class="mb-6">
@@ -126,7 +134,7 @@ onMounted(async () => {
                 <li>
                   <router-link to="/" class="hover:text-primary-600">Dashboard</router-link>
                 </li>
-                <li v-if="$route.meta.breadcrumb" class="flex items-center">
+                <li v-if="route.meta.breadcrumb" class="flex items-center">
                   <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fill-rule="evenodd"
@@ -134,15 +142,15 @@ onMounted(async () => {
                       clip-rule="evenodd"
                     />
                   </svg>
-                  <span class="ml-2">{{ $route.meta.breadcrumb }}</span>
+                  <span class="ml-2">{{ route.meta.breadcrumb }}</span>
                 </li>
               </ol>
             </nav>
             <h1 class="text-2xl font-bold text-gray-900 mt-2">
-              {{ $route.meta.title || 'Dashboard' }}
+              {{ route.meta.title || 'Dashboard' }}
             </h1>
 
-            <!-- Slot per il contenuto delle view -->
+            <!-- Slot per le view -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <RouterView />
             </div>
