@@ -425,8 +425,12 @@ const loadClients = async () => {
   error.value = null
   try {
     clients.value = await apiService.getClients()
-  } catch (err: any) {
-    error.value = err.message || 'Failed to load clients'
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      error.value = err.message
+    } else {
+      error.value = 'Failed to load clients'
+    }
     console.error(err)
   } finally {
     loading.value = false
@@ -479,8 +483,12 @@ const saveClient = async () => {
       clients.value.push(newClient)
     }
     closeModal()
-  } catch (err: any) {
-    alert(`Error: ${err.message}`)
+  } catch (err: unknown) {
+    let errorMessage = 'An error occurred while saving the client'
+    if (err instanceof Error) {
+      errorMessage = err.message
+    }
+    alert(`Error: ${errorMessage}`)
   } finally {
     saving.value = false
   }
@@ -492,8 +500,12 @@ const confirmDelete = async (client: Client) => {
   try {
     await apiService.deleteClient(client.id)
     clients.value = clients.value.filter((c) => c.id !== client.id)
-  } catch (err: any) {
-    alert(`Error: ${err.message}`)
+  } catch (err: unknown) {
+    let errorMessage = 'Failed to delete client'
+    if (err instanceof Error) {
+      errorMessage = err.message
+    }
+    alert(`Error: ${errorMessage}`)
   }
 }
 
