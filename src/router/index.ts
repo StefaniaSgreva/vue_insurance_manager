@@ -20,6 +20,10 @@ const router = createRouter({
       path: '/clients',
       name: 'clients',
       component: () => import('@/views/pages/ClientView.vue'),
+      meta: {
+        title: 'Client Management',
+        breadcrumb: 'Clients',
+      },
     },
     {
       path: '/policies',
