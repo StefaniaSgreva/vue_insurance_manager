@@ -3,7 +3,6 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
       <div>
-        <h2 class="text-2xl font-bold text-gray-900">Client Management</h2>
         <p class="text-gray-600 mt-1">Manage your insurance clients and their information</p>
       </div>
       <button @click="openCreateModal" class="btn-primary flex items-center mt-4 md:mt-0">

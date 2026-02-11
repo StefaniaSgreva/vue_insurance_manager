@@ -1,12 +1,22 @@
 import axios from 'axios'
-import type { Client, Policy, Stats } from '@/types/insurance'
+import type { Client, Policy } from '@/types/insurance'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
+})
+
+// Interceptor per aggiungere token dinamicamente
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
 })
 
 export const apiService = {

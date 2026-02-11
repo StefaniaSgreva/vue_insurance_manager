@@ -39,7 +39,7 @@
           role="menubar"
           aria-label="Desktop navigation"
         >
-          <template v-for="(item, index) in navigation" :key="item.name">
+          <template v-for="item in navigation" :key="item.name">
             <router-link
               :to="item.to"
               :class="[
@@ -59,59 +59,30 @@
           </template>
         </div>
 
-        <!-- Desktop: Profilo utente | Mobile: Hamburger button -->
+        <!-- Desktop: Profilo utente cliccabile -->
         <div class="flex items-center">
-          <!-- Profilo utente (visibile solo desktop) -->
-          <div class="hidden sm:flex sm:items-center sm:space-x-4">
+          <!-- Link al profilo (desktop) -->
+          <div v-if="authStore.isAuthenticated" class="hidden sm:flex sm:items-center sm:space-x-4">
             <div class="text-right">
-              <p class="text-sm font-medium text-gray-900" id="user-name">Mario Rossi</p>
-              <p class="text-xs text-gray-500" id="user-title">Insurance Agent</p>
+              <router-link
+                to="/profile"
+                class="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                :aria-label="`Profilo di ${authStore.user?.name || 'Utente'}`"
+              >
+                <p class="text-sm font-medium text-gray-900">
+                  {{ authStore.user?.name || 'Utente' }}
+                </p>
+                <p class="text-xs text-gray-500">Insurance Agent</p>
+              </router-link>
             </div>
-            <button
-              @click="toggleUserMenu"
-              @keydown.escape="userMenuOpen = false"
-              class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              :aria-expanded="userMenuOpen"
-              aria-haspopup="true"
-              aria-labelledby="user-name"
-              :aria-describedby="userMenuOpen ? 'user-menu-description' : undefined"
+            <router-link
+              to="/profile"
+              class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              :aria-label="`Profilo di ${authStore.user?.name || 'Utente'}`"
             >
-              MR
-              <span class="sr-only">User menu</span>
-            </button>
-
-            <!-- Dropdown menu utente (per desktop) -->
-            <div
-              v-if="userMenuOpen"
-              v-click-outside="() => (userMenuOpen = false)"
-              class="absolute right-0 mt-32 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50"
-              role="menu"
-              aria-orientation="vertical"
-              aria-labelledby="user-name"
-            >
-              <a
-                href="#"
-                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                role="menuitem"
-                tabindex="-1"
-                >Profile</a
-              >
-              <a
-                href="#"
-                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                role="menuitem"
-                tabindex="-1"
-                >Settings</a
-              >
-              <div class="border-t border-gray-100"></div>
-              <a
-                href="#"
-                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                role="menuitem"
-                tabindex="-1"
-                >Sign out</a
-              >
-            </div>
+              {{ userInitials }}
+              <span class="sr-only">Profile</span>
+            </router-link>
           </div>
 
           <!-- Hamburger button (visibile solo mobile) -->
@@ -125,7 +96,6 @@
             :aria-pressed="mobileMenuOpen"
           >
             <span class="sr-only">{{ mobileMenuOpen ? 'Close main menu' : 'Open main menu' }}</span>
-
             <!-- Icona hamburger (3 linee) -->
             <svg
               class="h-6 w-6 transform transition-all duration-300"
@@ -142,7 +112,6 @@
                 d="M4 6h16M4 12h16M4 18h16"
               />
             </svg>
-
             <!-- Icona X (croce) -->
             <svg
               class="absolute h-6 w-6 transform transition-all duration-300"
@@ -182,7 +151,7 @@
         @keydown.escape="mobileMenuOpen = false"
       >
         <div class="px-4 pt-2 pb-3 space-y-1">
-          <template v-for="(item, index) in navigation" :key="item.name">
+          <template v-for="item in navigation" :key="item.name">
             <router-link
               :to="item.to"
               @click="mobileMenuOpen = false"
@@ -197,41 +166,37 @@
               :aria-current="$route.path === item.to ? 'page' : undefined"
               role="menuitem"
               :tabindex="mobileMenuOpen ? 0 : -1"
-              :data-index="index"
             >
               {{ item.name }}
             </router-link>
           </template>
 
-          <!-- Sezione profilo utente in mobile -->
-          <div class="border-t border-gray-200 pt-4 mt-4">
+          <!-- Link al profilo in mobile -->
+          <div v-if="authStore.isAuthenticated" class="border-t border-gray-200 pt-4 mt-4">
             <div class="flex items-center px-3 py-3">
               <div
                 class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold"
               >
-                MR
+                {{ userInitials }}
               </div>
               <div class="ml-3">
-                <p class="text-sm font-medium text-gray-900">Mario Rossi</p>
+                <router-link
+                  to="/profile"
+                  @click="mobileMenuOpen = false"
+                  class="text-sm font-medium text-gray-900 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                >
+                  {{ authStore.user?.name || 'Utente' }}
+                </router-link>
                 <p class="text-xs text-gray-500">Insurance Agent</p>
               </div>
             </div>
             <div class="mt-2 space-y-1">
-              <a
-                href="#"
-                class="block px-3 py-2 rounded-md text-base text-gray-700 hover:bg-gray-100"
-                >Profile</a
+              <button
+                @click="handleLogout"
+                class="block w-full text-left px-3 py-2 rounded-md text-base text-gray-700 hover:bg-gray-100"
               >
-              <a
-                href="#"
-                class="block px-3 py-2 rounded-md text-base text-gray-700 hover:bg-gray-100"
-                >Settings</a
-              >
-              <a
-                href="#"
-                class="block px-3 py-2 rounded-md text-base text-gray-700 hover:bg-gray-100"
-                >Sign out</a
-              >
+                Sign out
+              </button>
             </div>
           </div>
         </div>
@@ -241,17 +206,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
+
+interface NavigationItem {
+  name: string
+  to: string
+}
 
 const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
 
-// Stati reattivi
 const mobileMenuOpen = ref(false)
-const userMenuOpen = ref(false)
 
 // Navigazione
-const navigation = [
+const navigation: NavigationItem[] = [
   { name: 'Dashboard', to: '/' },
   { name: 'Clients', to: '/clients' },
   { name: 'Policies', to: '/policies' },
@@ -259,57 +230,48 @@ const navigation = [
   { name: 'Settings', to: '/settings' },
 ]
 
+// Iniziali utente
+const userInitials = computed(() => {
+  const name = authStore.user?.name || ''
+  if (name.length === 0) return '?'
+  const parts = name.trim().split(' ')
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+})
+
 // Funzioni toggle
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
-  // Se apriamo il menu mobile, chiudiamo quello utente
-  if (mobileMenuOpen.value) {
-    userMenuOpen.value = false
-  }
 }
 
-const toggleUserMenu = () => {
-  userMenuOpen.value = !userMenuOpen.value
-  // Se apriamo il menu utente, chiudiamo quello mobile
-  if (userMenuOpen.value) {
-    mobileMenuOpen.value = false
-  }
+// Logout
+const handleLogout = async () => {
+  await authStore.logout()
+  mobileMenuOpen.value = false
+  router.push('/login')
 }
 
-// Gestione tastiera per accessibilità
-const handleNavKeydown = (item: any) => {
+// Gestione tastiera per navigazione
+const handleNavKeydown = (item: NavigationItem) => {
   router.push(item.to)
 }
 
-const handleMobileNavKeydown = (item: any) => {
+const handleMobileNavKeydown = (item: NavigationItem) => {
   router.push(item.to)
   mobileMenuOpen.value = false
 }
 
-// Direttiva custom per click outside
-const vClickOutside = {
-  beforeMount(el: HTMLElement, binding: any) {
-    el.clickOutsideEvent = (event: Event) => {
-      if (!(el === event.target || el.contains(event.target as Node))) {
-        binding.value()
-      }
-    }
-    document.addEventListener('click', el.clickOutsideEvent)
-  },
-  unmounted(el: HTMLElement) {
-    document.removeEventListener('click', el.clickOutsideEvent)
-  },
-}
-
-// Gestione focus per accessibilità
+// Gestione focus per accessibilità (trap focus nel menu mobile)
 const trapFocus = (e: KeyboardEvent) => {
   if (!mobileMenuOpen.value) return
 
-  const focusableElements = document.querySelectorAll(
-    '#mobile-menu [role="menuitem"], #mobile-menu button',
+  const focusableElements = document.querySelectorAll<HTMLElement>(
+    '#mobile-menu [role="menuitem"], #mobile-menu button, #mobile-menu a[href="/profile"]',
   )
-  const firstFocusable = focusableElements[0] as HTMLElement
-  const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement
+  if (focusableElements.length === 0) return
+
+  const firstFocusable = focusableElements[0]
+  const lastFocusable = focusableElements[focusableElements.length - 1]
 
   if (e.key === 'Tab') {
     if (e.shiftKey && document.activeElement === firstFocusable) {
@@ -322,23 +284,14 @@ const trapFocus = (e: KeyboardEvent) => {
   }
 }
 
-// Gestione chiavi per accessibilità
+// Gestione tasti globali
 const handleKeydown = (e: KeyboardEvent) => {
-  // Escape chiude menu aperti
-  if (e.key === 'Escape') {
-    if (mobileMenuOpen.value) {
-      mobileMenuOpen.value = false
-    }
-    if (userMenuOpen.value) {
-      userMenuOpen.value = false
-    }
+  if (e.key === 'Escape' && mobileMenuOpen.value) {
+    mobileMenuOpen.value = false
   }
-
-  // Trap focus nel menu mobile
   trapFocus(e)
 }
 
-// Aggiungi/rimuovi event listeners
 onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
 })
